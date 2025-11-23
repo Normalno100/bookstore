@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${book.title}">Book</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="p-4">
+<div class="container">
+    <a href="/books" class="btn btn-link mb-3">← назад</a>
+    <h1 th:text="${book.title}">Title</h1>
+    <h4 th:text="${book.author}">Author</h4>
+    <p th:text="${book.description}">Description</p>
+    <p>Цена: <strong th:text="${book.price}">0.0</strong></p>
+</div>
+</body>
+</html>
