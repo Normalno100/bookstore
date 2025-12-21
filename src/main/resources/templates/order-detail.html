@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказ №<span th:text="${order.id}">1</span></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="p-4">
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Заказ №<span th:text="${order.id}">1</span></h1>
+        <a th:href="@{/orders}" class="btn btn-outline-primary">← Все заказы</a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Информация о заказе</h5>
+                    <table class="table table-borderless">
+                        <tbody>
+                        <tr>
+                            <td><strong>Статус:</strong></td>
+                            <td>
+                                    <span class="badge"
+                                          th:classappend="${order.status.name() == 'PENDING' ? 'bg-warning' :
+                                                          order.status.name() == 'CONFIRMED' ? 'bg-info' :
+                                                          order.status.name() == 'SHIPPED' ? 'bg-primary' :
+                                                          order.status.name() == 'DELIVERED' ? 'bg-success' : 'bg-secondary'}"
+                                          th:text="${order.status.name() == 'PENDING' ? 'Ожидает обработки' :
+                                                    order.status.name() == 'CONFIRMED' ? 'Подтверждён' :
+                                                    order.status.name() == 'SHIPPED' ? 'Отправлен' :
+                                                    order.status.name() == 'DELIVERED' ? 'Доставлен' : 'Отменён'}">
+                                        Статус
+                                    </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Дата создания:</strong></td>
+                            <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td th:text="${order.customerEmail}">email@example.com</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Телефон:</strong></td>
+                            <td th:text="${order.customerPhone}">+7 (999) 999-99-99</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Адрес доставки:</strong></td>
+                            <td th:text="${order.deliveryAddress}">Address</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div th:if="${order.status.name() == 'PENDING'}">
+                        <form th:action="@{'/orders/' + ${order.id} + '/cancel'}" method="post"
+                              onsubmit="return confirm('Вы уверены, что хотите отменить заказ?');">
+                            <button type="submit" class="btn btn-danger">Отменить заказ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Состав заказа</h5>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Автор</th>
+                            <th>Цена</th>
+                            <th>Количество</th>
+                            <th>Сумма</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td>
+                                <a th:href="@{'/books/' + ${item.book.id}}" th:text="${item.book.title}">Title</a>
+                            </td>
+                            <td th:text="${item.book.author}">Author</td>
+                            <td th:text="${#numbers.formatDecimal(item.priceAtOrder, 1, 2)} + ' ₽'">0.00 ₽</td>
+                            <td th:text="${item.quantity}">1</td>
+                            <td><strong th:text="${#numbers.formatDecimal(item.subtotal, 1, 2)} + ' ₽'">0.00 ₽</strong></td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Итого:</strong></td>
+                            <td><strong th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)} + ' ₽'">0.00 ₽</strong></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Следующий шаг</h5>
+                    <div th:if="${order.status.name() == 'PENDING'}">
+                        <p class="text-muted">Ваш заказ принят и ожидает подтверждения менеджером.</p>
+                    </div>
+                    <div th:if="${order.status.name() == 'CONFIRMED'}">
+                        <p class="text-muted">Заказ подтверждён и готовится к отправке.</p>
+                    </div>
+                    <div th:if="${order.status.name() == 'SHIPPED'}">
+                        <p class="text-muted">Заказ отправлен и находится в пути.</p>
+                    </div>
+                    <div th:if="${order.status.name() == 'DELIVERED'}">
+                        <p class="text-success">Заказ доставлен. Спасибо за покупку!</p>
+                    </div>
+                    <div th:if="${order.status.name() == 'CANCELLED'}">
+                        <p class="text-danger">Заказ отменён.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

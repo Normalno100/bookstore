@@ -11,11 +11,15 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Каталог книг</h1>
         <div>
+            <a th:href="@{/cart}" class="btn btn-outline-success me-2">
+                🛒 Корзина
+            </a>
             <span sec:authorize="isAuthenticated()" class="me-3">
                 Здравствуйте, <strong sec:authentication="name">User</strong>!
             </span>
             <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-outline-primary me-2">Войти</a>
             <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="btn btn-primary me-2">Регистрация</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/orders}" class="btn btn-outline-secondary me-2">Мои заказы</a>
             <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="d-inline">
                 <button type="submit" class="btn btn-outline-secondary">Выйти</button>
             </form>
@@ -35,7 +39,18 @@
                 <div class="card-body">
                     <h5 class="card-title" th:text="${book.title}">Title</h5>
                     <p class="card-text" th:text="${book.author}">Author</p>
-                    <a th:href="@{'/books/' + ${book.id}}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                    <p class="card-text">
+                        <strong th:text="${#numbers.formatDecimal(book.price, 1, 2)} + ' ₽'">0.00 ₽</strong>
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a th:href="@{'/books/' + ${book.id}}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                        <small class="text-muted" th:if="${book.stock > 0}">
+                            В наличии: <span th:text="${book.stock}">0</span>
+                        </small>
+                        <small class="text-danger" th:if="${book.stock == 0}">
+                            Нет в наличии
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
