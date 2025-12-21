@@ -3,6 +3,7 @@ package com.example.bookstore.service;
 import com.example.bookstore.model.Book;
 import com.example.bookstore.repository.BookRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,7 +27,13 @@ public class BookService {
         return repo.findByTitleContainingIgnoreCase(q);
     }
 
+    @Transactional
     public Book save(Book book) {
         return repo.save(book);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        repo.deleteById(id);
     }
 }

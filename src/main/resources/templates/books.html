@@ -17,6 +17,9 @@
             <span sec:authorize="isAuthenticated()" class="me-3">
                 Здравствуйте, <strong sec:authentication="name">User</strong>!
             </span>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="btn btn-outline-danger me-2">
+                🔐 Админ-панель
+            </a>
             <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-outline-primary me-2">Войти</a>
             <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="btn btn-primary me-2">Регистрация</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/orders}" class="btn btn-outline-secondary me-2">Мои заказы</a>
@@ -28,32 +31,51 @@
 
     <form class="mb-3" method="get" th:action="@{/books}">
         <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Поиск"/>
+            <input type="text" name="q" class="form-control" placeholder="Поиск по названию"/>
             <button class="btn btn-primary" type="submit">Поиск</button>
         </div>
     </form>
 
     <div class="row">
-        <div class="col-md-4" th:each="book : ${books}">
-            <div class="card mb-3">
-                <div class="card-body">
+        <div class="col-md-3" th:each="book : ${books}">
+            <div class="card mb-4 h-100">
+                <div th:if="${book.imagePath}" class="card-img-top-wrapper" style="height: 300px; overflow: hidden; background-color: #f8f9fa;">
+                    <img th:src="${book.imagePath}"
+                         class="card-img-top"
+                         th:alt="${book.title}"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div th:unless="${book.imagePath}" class="bg-secondary text-white d-flex align-items-center justify-content-center"
+                     style="height: 300px; font-size: 3rem;">
+                    📚
+                </div>
+                <div class="card-body d-flex flex-column">
                     <h5 class="card-title" th:text="${book.title}">Title</h5>
-                    <p class="card-text" th:text="${book.author}">Author</p>
+                    <p class="card-text text-muted" th:text="${book.author}">Author</p>
                     <p class="card-text">
-                        <strong th:text="${#numbers.formatDecimal(book.price, 1, 2)} + ' ₽'">0.00 ₽</strong>
+                        <strong class="text-primary" th:text="${#numbers.formatDecimal(book.price, 1, 2)} + ' ₽'">0.00 ₽</strong>
                     </p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a th:href="@{'/books/' + ${book.id}}" class="btn btn-sm btn-outline-primary">Подробнее</a>
-                        <small class="text-muted" th:if="${book.stock > 0}">
-                            В наличии: <span th:text="${book.stock}">0</span>
-                        </small>
-                        <small class="text-danger" th:if="${book.stock == 0}">
-                            Нет в наличии
-                        </small>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-success" th:if="${book.stock > 0}">
+                                В наличии: <span th:text="${book.stock}">0</span>
+                            </small>
+                            <small class="text-danger" th:if="${book.stock == 0}">
+                                Нет в наличии
+                            </small>
+                        </div>
+                        <a th:href="@{'/books/' + ${book.id}}" class="btn btn-outline-primary w-100">
+                            Подробнее
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div th:if="${books.empty}" class="text-center py-5 text-muted">
+        <h3>Книги не найдены</h3>
+        <p>Попробуйте изменить параметры поиска</p>
     </div>
 </div>
 </body>

@@ -26,4 +26,6 @@ public class Book {
     private String isbn;
     private BigDecimal price;
     private Integer stock;
+
+    private String imagePath; // Путь к изображению
 }

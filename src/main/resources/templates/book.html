@@ -23,16 +23,30 @@
     </div>
 
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-4">
+            <div th:if="${book.imagePath}" class="mb-3">
+                <img th:src="${book.imagePath}"
+                     class="img-fluid rounded shadow"
+                     th:alt="${book.title}"
+                     style="width: 100%; max-height: 500px; object-fit: cover;">
+            </div>
+            <div th:unless="${book.imagePath}"
+                 class="bg-secondary text-white d-flex align-items-center justify-content-center rounded shadow mb-3"
+                 style="height: 500px; font-size: 5rem;">
+                📚
+            </div>
+        </div>
+
+        <div class="col-md-5">
             <h1 th:text="${book.title}">Title</h1>
-            <h4 class="text-muted" th:text="${book.author}">Author</h4>
+            <h4 class="text-muted mb-3" th:text="${book.author}">Author</h4>
 
             <div class="mb-3">
-                <span class="badge bg-secondary" th:text="${book.genre}">Genre</span>
+                <span class="badge bg-secondary me-2" th:text="${book.genre}">Genre</span>
                 <span class="badge bg-info" th:if="${book.isbn}" th:text="'ISBN: ' + ${book.isbn}">ISBN</span>
             </div>
 
-            <p th:text="${book.description}">Description</p>
+            <p class="lead" th:text="${book.description}">Description</p>
 
             <div class="alert alert-info" th:if="${book.stock > 0}">
                 <strong>В наличии:</strong> <span th:text="${book.stock}">0</span> шт.
@@ -42,10 +56,10 @@
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
+        <div class="col-md-3">
+            <div class="card sticky-top" style="top: 20px;">
                 <div class="card-body">
-                    <h3 class="card-title text-primary" th:text="${#numbers.formatDecimal(book.price, 1, 2)} + ' ₽'">0.00 ₽</h3>
+                    <h3 class="card-title text-primary mb-4" th:text="${#numbers.formatDecimal(book.price, 1, 2)} + ' ₽'">0.00 ₽</h3>
 
                     <form th:action="@{'/cart/add/' + ${book.id}}" method="post" th:if="${book.stock > 0}">
                         <div class="mb-3">
@@ -54,7 +68,7 @@
                                    value="1" min="1" th:max="${book.stock}">
                         </div>
                         <button type="submit" class="btn btn-success w-100">
-                            Добавить в корзину
+                            🛒 Добавить в корзину
                         </button>
                     </form>
 
