@@ -1,7 +1,9 @@
 package com.example.bookstore.model;
 
+import io.hypersistence.utils.hibernate.type.array.FloatArrayType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
 
@@ -27,5 +29,33 @@ public class Book {
     private BigDecimal price;
     private Integer stock;
 
-    private String imagePath; // Путь к изображению
+    private String imagePath;
+
+    // Векторное представление для семантического поиска
+    @Type(FloatArrayType.class)
+    @Column(name = "embedding", columnDefinition = "vector(1536)")
+    private float[] embedding;
+
+    /**
+     * Получить текст для генерации эмбеддинга
+     * Комбинирует название, автора, жанр и описание
+     */
+    public String getTextForEmbedding() {
+        StringBuilder text = new StringBuilder();
+
+        if (title != null) {
+            text.append("Название: ").append(title).append(". ");
+        }
+        if (author != null) {
+            text.append("Автор: ").append(author).append(". ");
+        }
+        if (genre != null) {
+            text.append("Жанр: ").append(genre).append(". ");
+        }
+        if (description != null) {
+            text.append("Описание: ").append(description);
+        }
+
+        return text.toString();
+    }
 }

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление индексацией - Админ-панель</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            <i class="bi bi-shield-lock"></i> Админ-панель
+        </span>
+        <div>
+            <a th:href="@{/admin/books}" class="btn btn-outline-light btn-sm me-2">
+                <i class="bi bi-book"></i> Книги
+            </a>
+            <a th:href="@{/books}" class="btn btn-outline-light btn-sm me-2">
+                <i class="bi bi-shop"></i> Магазин
+            </a>
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid p-4">
+    <h1 class="mb-4">
+        <i class="bi bi-database"></i> Управление векторной индексацией
+    </h1>
+
+    <!-- Информационная панель -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> О векторной индексации</h5>
+                <p class="mb-0">
+                    Векторная индексация создает семантические представления (embeddings) описаний книг,
+                    что позволяет искать похожие книги не по точным совпадениям слов, а по смыслу.
+                </p>
+                <p class="mb-0 mt-2">
+                    <strong>Пример:</strong> Запрос "космические приключения" найдет книги про
+                    "межзвездные путешествия" и "полеты в космос", даже если эти слова не совпадают.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2">Текущая статистика</h6>
+                    <h3 class="card-title" id="statsDisplay" th:text="${stats}">Загрузка...</h3>
+                    <button class="btn btn-sm btn-light mt-2" onclick="updateStats()">
+                        <i class="bi bi-arrow-clockwise"></i> Обновить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Действия -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-plus-circle text-success"></i> Индексация новых книг
+                    </h5>
+                    <p class="card-text">
+                        Создает эмбеддинги только для книг, которые еще не проиндексированы.
+                        Быстрая операция, используется после добавления новых книг.
+                    </p>
+                    <ul class="small text-muted mb-3">
+                        <li>Обрабатывает только новые книги</li>
+                        <li>Выполняется в фоновом режиме</li>
+                        <li>Примерное время: 1-2 сек на книгу</li>
+                    </ul>
+                    <button class="btn btn-success" onclick="startIndexing()">
+                        <i class="bi bi-lightning"></i> Запустить индексацию
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-arrow-repeat text-warning"></i> Переиндексация всех книг
+                    </h5>
+                    <p class="card-text">
+                        Пересоздает эмбеддинги для ВСЕХ книг в каталоге.
+                        Используйте при обновлении модели эмбеддингов или после массовых изменений описаний.
+                    </p>
+                    <ul class="small text-muted mb-3">
+                        <li>Обрабатывает все книги заново</li>
+                        <li>Может занять много времени</li>
+                        <li>Улучшает качество поиска</li>
+                    </ul>
+                    <button class="btn btn-warning" onclick="confirmReindex()">
+                        <i class="bi bi-arrow-clockwise"></i> Переиндексировать все
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Лог операций -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <i class="bi bi-terminal"></i> Лог операций
+        </div>
+        <div class="card-body">
+            <div id="logContainer" class="p-3 bg-light border rounded" style="height: 300px; overflow-y: auto; font-family: monospace; font-size: 14px;">
+                <div class="text-muted">Ожидание операций...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Тестирование поиска -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <i class="bi bi-search"></i> Тестирование векторного поиска
+        </div>
+        <div class="card-body">
+            <p>Протестируйте качество семантического поиска:</p>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="testQuery"
+                       placeholder="Например: космические приключения">
+                <button class="btn btn-info" onclick="testSearch()">
+                    <i class="bi bi-search"></i> Тест-поиск
+                </button>
+            </div>
+            <div id="testResults"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Логирование
+    function addLog(message, type = 'info') {
+        const logContainer = document.getElementById('logContainer');
+        const timestamp = new Date().toLocaleTimeString();
+        const colorClass = type === 'error' ? 'text-danger' :
+                          type === 'success' ? 'text-success' :
+                          type === 'warning' ? 'text-warning' : 'text-info';
+
+        const logEntry = document.createElement('div');
+        logEntry.className = colorClass;
+        logEntry.innerHTML = `[${timestamp}] ${message}`;
+
+        logContainer.appendChild(logEntry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // Обновление статистики
+    async function updateStats() {
+        try {
+            const response = await fetch('/admin/indexing/api/stats');
+            const data = await response.json();
+            document.getElementById('statsDisplay').textContent = data.stats;
+            addLog('Статистика обновлена', 'success');
+        } catch (error) {
+            addLog('Ошибка обновления статистики: ' + error, 'error');
+        }
+    }
+
+    // Запуск индексации
+    async function startIndexing() {
+        if (!confirm('Запустить индексацию новых книг?')) return;
+
+        addLog('Запуск индексации новых книг...', 'info');
+
+        try {
+            const response = await fetch('/admin/indexing/api/index', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.status === 'started') {
+                addLog(data.message, 'success');
+                addLog('Процесс запущен в фоновом режиме. Следите за логами сервера.', 'info');
+
+                // Обновляем статистику через несколько секунд
+                setTimeout(updateStats, 3000);
+            } else {
+                addLog('Ошибка: ' + data.message, 'error');
+            }
+        } catch (error) {
+            addLog('Ошибка запуска индексации: ' + error, 'error');
+        }
+    }
+
+    // Подтверждение переиндексации
+    function confirmReindex() {
+        if (!confirm('ВНИМАНИЕ! Это пересоздаст эмбеддинги для ВСЕХ книг.\n\nПродолжить?')) return;
+        if (!confirm('Вы уверены? Операция может занять много времени.')) return;
+
+        reindexAll();
+    }
+
+    // Переиндексация всех книг
+    async function reindexAll() {
+        addLog('Запуск полной переиндексации...', 'warning');
+
+        try {
+            const response = await fetch('/admin/indexing/api/reindex', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.status === 'started') {
+                addLog(data.message, 'success');
+                addLog('ВАЖНО: Это долгая операция. Не закрывайте сервер!', 'warning');
+
+                // Обновляем статистику периодически
+                const interval = setInterval(updateStats, 10000);
+                setTimeout(() => clearInterval(interval), 300000); // Останавливаем через 5 минут
+            } else {
+                addLog('Ошибка: ' + data.message, 'error');
+            }
+        } catch (error) {
+            addLog('Ошибка запуска переиндексации: ' + error, 'error');
+        }
+    }
+
+    // Тестирование поиска
+    async function testSearch() {
+        const query = document.getElementById('testQuery').value;
+        if (!query) return;
+
+        addLog('Тестовый поиск: "' + query + '"', 'info');
+
+        try {
+            const response = await fetch('/books/api/search?q=' + encodeURIComponent(query));
+            const data = await response.json();
+
+            const resultsDiv = document.getElementById('testResults');
+            if (data.books && data.books.length > 0) {
+                resultsDiv.innerHTML = '<div class="alert alert-success mt-2">' +
+                    '<strong>Найдено книг:</strong> ' + data.count + '<br>' +
+                    data.books.map(b => '• ' + b.title + ' (' + b.author + ')').join('<br>') +
+                    '</div>';
+                addLog('Найдено ' + data.count + ' книг', 'success');
+            } else {
+                resultsDiv.innerHTML = '<div class="alert alert-warning mt-2">Ничего не найдено</div>';
+                addLog('Книги не найдены', 'warning');
+            }
+        } catch (error) {
+            addLog('Ошибка тестового поиска: ' + error, 'error');
+        }
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        addLog('Страница управления индексацией загружена', 'success');
+        updateStats();
+    });
+</script>
+</body>
+</html>

@@ -11,6 +11,13 @@
 		<spring.boot.version>3.2.5</spring.boot.version>
 	</properties>
 
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.2.5</version>
+		<relativePath/>
+	</parent>
+
 	<dependencies>
 		<!-- Spring Web -->
 		<dependency>
@@ -60,6 +67,13 @@
 			<artifactId>flyway-core</artifactId>
 		</dependency>
 
+		<!-- Flyway PostgreSQL для поддержки pgvector -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+			<version>10.10.0</version>
+		</dependency>
+
 		<!-- Jackson -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -73,6 +87,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Hypersistence Utils для работы с pgvector в Hibernate 6 -->
+		<dependency>
+			<groupId>io.hypersistence</groupId>
+			<artifactId>hypersistence-utils-hibernate-63</artifactId>
+			<version>3.7.3</version>
+		</dependency>
+
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -80,18 +101,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring.boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -106,7 +115,7 @@
 				<configuration>
 					<source>17</source>
 					<target>17</target>
-					<parameters>true</parameters> <!-- ЭТО ВАЖНО -->
+					<parameters>true</parameters>
 				</configuration>
 			</plugin>
 		</plugins>
